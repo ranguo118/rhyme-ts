@@ -1,5 +1,7 @@
-import { expect, test } from "bun:test"
+import { expect, test } from "bun:test";
+import { q, compile } from "../src/rhyme";
 
 test("a test", () => {
-    expect(true).toBeTrue()
-})
+  let f = compile(q.plus(1, 1));
+  console.log(f);
+});
