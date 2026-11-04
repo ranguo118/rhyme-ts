@@ -1,52 +1,14 @@
 {
-  "name": "rhyme-lang",
-  "type": "commonjs",
-  "version": "0.0.5",
-  "description": "Rhyme: An Expressive Data-Centric Query Language",
+  "name": "rhyme",
+  "module": "rhyme.ts",
+  "type": "module",
   "scripts": {
-    "test": "jest",
-    "shell": "node ./src/shell.js",
-    "prepublishOnly": "./node_modules/.bin/webpack",
-    "build": "webpack"
-  },
-  "keywords": [
-    "query-language",
-    "json",
-    "nested-data",
-    "code-generation",
-    "compiler",
-    "data-processing"
-  ],
-  "author": "Tiark Rompf",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/rhyme-lang/rhyme.git"
-  },
-  "homepage": "https://rhyme-lang.github.io/",
-  "bugs": {
-    "url": "https://github.com/rhyme-lang/rhyme/issues"
+    "typecheck": "bun check"
   },
   "devDependencies": {
-    "jest": "^30.5.1",
-    "webpack": "^5.111.0",
-    "webpack-cli": "^6.0.1"
+    "@types/bun": "latest"
   },
-  "exports": {
-    ".": "./src/rhyme.js"
-  },
-  "files": [
-    "src",
-    "umd",
-    "runtime",
-    "third-party/yyjson/yyjson.c",
-    "third-party/yyjson/yyjson.h",
-    "third-party/json/include"
-  ],
-  "bin": {
-    "rhyme": "./src/cli.js"
-  },
-  "man": [
-    "man/rhyme.1"
-  ]
+  "peerDependencies": {
+    "typescript": "^7"
+  }
 }

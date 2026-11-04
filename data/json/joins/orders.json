@@ -1,8 +1,0 @@
-[
-  { "id": 1, "item": "order1", "customerId": 1 },
-  { "id": 2, "item": "order2", "customerId": 3 },
-  { "id": 3, "item": "order3", "customerId": 1 },
-  { "id": 4, "item": "order4", "customerId": 5 },
-  { "id": 5, "item": "order5", "customerId": 3 },
-  { "id": 6, "item": "order6", "customerId": 100 }
-]
