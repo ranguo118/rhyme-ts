@@ -11,9 +11,8 @@ test("a test", () => {
 //
 // Ported from rhyme/test/original/parser.test.js
 //
-// The original `parse` / `rh` also ran desugar, so its expectations include
-// two desugar effects that are not ported yet. These tests check the parser
-// output alone (the original `parserImpl`); once parse includes desugar:
+// `parse` / `rh` include desugar, as in the original, so the expectations
+// include its effects:
 //  - a leading path segment gets the input root: `a` -> get(raw inp, a)
 //  - a hole holding an ast is replaced by it: hole(rh`b`) -> rh`b` ast
 //
@@ -34,28 +33,31 @@ test("pathTest1", () => {
 
 test("pathTest3", () => {
   let res = parse("a.*.*c");
+  let root = ast.root();
   let a = ast.ident("a");
   let b = ast.ident("*");
   let c = ast.ident("*c");
-  let expected = ast.get(ast.get(a, b), c); // desugar: get(get(get(root, a), b), c)
+  let expected = ast.get(ast.get(ast.get(root, a), b), c);
   expect(res._rhymeAst).toEqual(expected);
 });
 
 test("pathTest4", () => {
   let res = parse("(a)[b](c)");
+  let root = ast.root();
   let a = ast.ident("a");
   let b = ast.ident("b");
   let c = ast.ident("c");
-  let expected = ast.apply(ast.get(a, b), c); // desugar: apply(get(get(root, a), b), c)
+  let expected = ast.apply(ast.get(ast.get(root, a), b), c);
   expect(res._rhymeAst).toEqual(expected);
 });
 
 test("templateTest1", () => {
   let res = rh`a.b.c`;
+  let root = ast.root();
   let a = ast.ident("a");
   let b = ast.ident("b");
   let c = ast.ident("c");
-  let expected = ast.get(ast.get(a, b), c); // desugar: get(get(get(root, a), b), c)
+  let expected = ast.get(ast.get(ast.get(root, a), b), c);
   expect(res._rhymeAst).toEqual(expected);
 });
 
@@ -74,7 +76,7 @@ test("templateTest3", () => {
   // let res = rh`${a}.${b}.c` <-- this currently isn't allowed -- should it be?
   let res = rh`${a}[${b}].c`;
   let c = ast.ident("c");
-  let expected = ast.get(ast.get(ast.hole(a), ast.hole(b)), c); // desugar: hole(b) -> b._rhymeAst
+  let expected = ast.get(ast.get(ast.hole(a), b._rhymeAst), c);
   expect(res._rhymeAst).toEqual(expected);
 });
 
@@ -83,7 +85,7 @@ test("templateTest4", () => {
   let b = rh`b`;
   let res = rh`${a}.${b}.c`; // <-- this is now allowed
   let c = ast.ident("c");
-  let expected = ast.get(ast.get(ast.hole(a), ast.hole(b)), c); // desugar: hole(b) -> b._rhymeAst
+  let expected = ast.get(ast.get(ast.hole(a), b._rhymeAst), c);
   expect(res._rhymeAst).toEqual(expected);
 });
 

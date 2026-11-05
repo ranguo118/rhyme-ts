@@ -2,12 +2,13 @@ import * as ast from "./ast";
 import type { Ast, OpKey } from "./ast";
 import { specialOpsFull, pureOps, statefulOpsFull } from "./ops";
 import * as driver from "./driver";
+export { rh } from "./parser";
 
 //
 // ---------- Function-based syntax object API ----------
 //
 
-type OpBuilder = (...param: unknown[]) => Ast;
+type OpBuilder = (...param: readonly unknown[]) => Ast;
 
 // Create a syntax API entry for every op in `names`, e.g.
 //

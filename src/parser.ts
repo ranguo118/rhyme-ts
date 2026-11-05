@@ -4,6 +4,7 @@ import * as utils from "./utils";
 import * as ast from "./ast";
 import type { Ast, Expr } from "./ast";
 import type { PureOp } from "./ops";
+import { desugar } from "./desugar";
 
 type binopEntry = {
   readonly key: PureOp;
@@ -53,11 +54,11 @@ export function rh(
   strings: readonly string[],
   ...holes: readonly unknown[]
 ): Ast {
-  return ast.wrap(parseImpl(strings, ...holes));
+  return ast.wrap(desugar(parseImpl(strings, ...holes)));
 }
 
 export function parse(src: string): Ast {
-  return ast.wrap(parseImpl([src], []));
+  return ast.wrap(desugar(parseImpl([src], [])));
 }
 
 export function parseImpl(

@@ -37,10 +37,13 @@ export interface Hole {
   readonly _rhOp: unknown;
 }
 
+// desugar's binding environment: let/fn-bound name -> its ast
+export type Env = { readonly [name: string]: Expr };
+
 // fn x body, closed over its definition environment (desugar)
 export interface Closure {
   readonly _rhKey: "closure";
-  readonly _rhParam: readonly [env: unknown, arg: Expr, body: Expr]; // env is not an AST
+  readonly _rhParam: readonly [env: Env, arg: Expr, body: Expr]; // env is not an AST
 }
 
 // keys of the built-in ops (used by the q.* builders). The ast itself is
@@ -128,7 +131,7 @@ export const array = (as: readonly Expr[]): OpNode => op("array", as);
 export const object = (as: readonly Expr[]): OpNode => op("object", as);
 export const plus = (a: Expr, b: Expr): OpNode => op("plus", [a, b]);
 
-export const closure = (env: unknown, arg: Expr, body: Expr): Closure => ({
+export const closure = (env: Env, arg: Expr, body: Expr): Closure => ({
   _rhKey: "closure",
   _rhParam: [env, arg, body],
 });
