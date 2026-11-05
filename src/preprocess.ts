@@ -207,27 +207,23 @@ function preprocOp(q: OpNode): IR {
         utils.error("malformed op " + JSON.stringify(q));
       return { key: "stateful", op: op, arg: [es2[0]] };
     } else if (ops.isStatefulOpFull(op)) {
-      // sum? -> stateful sum, mode 'maybe'
-      // prefix_sum -> prefix sum
+      // sum?         -> stateful sum, mode 'maybe'
+      // prefix_sum   -> prefix sum
+      // prefix_sum?  -> prefix sum, mode 'maybe'
+      // (The original passed "sum?" through as the prefix op, generating
+      // `rt.stateful.sum?(...)`, which JS reads as an optional call.)
       const isPrefix = op.startsWith("prefix_");
       const name = isPrefix ? op.slice("prefix_".length) : op;
       const maybe = name.endsWith("?");
       const base = maybe ? name.slice(0, -1) : name;
       if (!ops.isStatefulOp(base))
         utils.error("unknown stateful op " + JSON.stringify(q));
-      if (isPrefix) {
-        // the IR has no 'maybe' prefix. (The original passed "sum?"
-        // through, generating `rt.stateful.sum?(...)`, an optional call.)
-        if (maybe)
-          utils.error(
-            "maybe mode is not supported for prefix ops: " + JSON.stringify(q),
-          );
-        return { key: "prefix", op: base, arg: es2 };
-      }
       const [e1] = es2;
       if (es2.length !== 1 || e1 === undefined)
         utils.error("malformed op " + JSON.stringify(q));
-      return { key: "stateful", op: base, arg: [e1], mode: "maybe" };
+      const m = maybe ? { mode: "maybe" as const } : {};
+      if (isPrefix) return { key: "prefix", op: base, arg: [e1], ...m };
+      return { key: "stateful", op: base, arg: [e1], ...m };
     }
     utils.error("malformed op " + JSON.stringify(q));
   }

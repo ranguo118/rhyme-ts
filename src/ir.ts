@@ -76,11 +76,16 @@ export interface Stateful {
   readonly mode?: "maybe" | "reluctant";
 }
 
+// running aggregate: the array of all intermediate results of op
+// (prefix_sum, prefix_count, ...). Mode 'maybe' (prefix_sum?), as for
+// stateful: not initialized, i.e. undefined rather than [] if there are no
+// elements. NOTE: the original js backend never initialized prefix nodes
+// (prefix_init was unused), so both forms gave undefined there.
 export interface Prefix {
   readonly key: "prefix";
   readonly op: StatefulOp;
-  arg: readonly IR[];
-  readonly mode?: "reluctant";
+  arg: readonly [IR];
+  readonly mode?: "maybe" | "reluctant";
 }
 
 // group(k, e) / group?(k, e); group(e) gets a placeholder key.
@@ -95,7 +100,7 @@ export interface Group {
 export interface Update {
   readonly key: "update";
   // base, key, value, optional generator filter for the key (extract0)
-  arg: readonly [IR, IR, IR] | readonly [IR, IR, IR, IR];
+  arg: [IR, IR, IR] | [IR, IR, IR, IR];
   readonly mode?: "inplace";
 }
 

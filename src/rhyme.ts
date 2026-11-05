@@ -42,6 +42,6 @@ export const q = {
 
 export const pipe = {};
 
-export function compile(src: unknown, settings: Record<string, any>) {
-  return driver.compile(src, settings);
+export function compile(src: unknown, settings?: Record<string, any>) {
+  return driver.compile(src, settings ?? {});
 }

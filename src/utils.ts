@@ -1,7 +1,7 @@
-const debug = false;
+const debug = true;
 
-export function log(s: string) {
-  if (debug) console.error(s);
+export function log(...data: any[]) {
+  if (debug) console.error(...data);
 }
 
 export function todo(s: string): never {
