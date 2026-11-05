@@ -2,7 +2,7 @@
 
 import * as utils from "./utils";
 import * as ast from "./ast";
-import type { Expr } from "./ast";
+import type { Ast, Expr } from "./ast";
 import type { PureOp } from "./ops";
 
 type binopEntry = {
@@ -47,4 +47,16 @@ function astPostop(op: string, a: Expr): Expr {
     return ast.op("get?", a._rhParam);
   }
   return ast.op(op, [a]);
+}
+
+export function rh(strings: readonly string[], ...holes: readonly unknown[]): Ast {
+  return ast.wrap(parseImpl(strings, ...holes))
+}
+
+export function parse(src: string): Ast {
+  return ast.wrap(parseImpl([src], []))
+}
+
+export function parseImpl(strings: readonly string[], ...holes: readonly unknown[]): Expr {
+    return ast.constant(1)
 }
