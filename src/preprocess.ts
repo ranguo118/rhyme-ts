@@ -3,6 +3,7 @@ import * as ops from "./ops";
 import type { Expr, OpNode } from "./ast";
 import type { IR } from "./ir";
 import * as utils from "./utils";
+import { parse } from "./parser";
 
 const isVar = (s: string) => s.startsWith("*");
 let settings: Record<string, any>;
@@ -17,7 +18,7 @@ function resolveHole(p: unknown): Expr {
     return ast.constant(Number(p));
   } else if (typeof p === "string") {
     // if (p == "-" || p == "$display") return { xxkey: "const", xxop: p };
-    return utils.todo("parse query in preprocess"); // includes desugaring, i.e., no internal holes left
+    return ast.unwrap(parse(p)); // includes desugaring, i.e., no internal holes left
   } else if ((typeof p === "object" && p !== null) || typeof p === "function") {
     // treat fct as obj
     if (ast.isAst(p)) {
@@ -63,7 +64,11 @@ function preprocOp(q: OpNode): IR {
       utils.error("malformed op " + JSON.stringify(q));
     let e1 = preproc(q._rhParam[0]);
     const schema = q._rhParam[1];
-    if (schema === undefined || schema._rhKey !== "hole" || ast.isOpNode(schema))
+    if (
+      schema === undefined ||
+      schema._rhKey !== "hole" ||
+      ast.isOpNode(schema)
+    )
       utils.error("schema expected for " + JSON.stringify(q));
     return {
       key: "loadInput",

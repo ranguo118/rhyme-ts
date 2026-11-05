@@ -100,7 +100,9 @@ export const ident = (a: string): Ident => ({ _rhKey: "ident", _rhOp: a });
 export const raw = (a: string): Raw => ({ _rhKey: "raw", _rhOp: a });
 export const root = (): Raw => raw("inp");
 export const hole = (a: unknown): Hole => ({ _rhKey: "hole", _rhOp: a });
-export const constant = (a: number | boolean | string | readonly []): Const => ({
+export const constant = (
+  a: number | boolean | string | readonly [],
+): Const => ({
   _rhKey: "const",
   _rhOp: a,
 });
