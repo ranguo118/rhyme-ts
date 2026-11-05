@@ -37,97 +37,97 @@ import type { PureOp, StatefulOp } from "./ops";
 export type VarName = string;
 
 export interface Input {
-  key: "input";
+  readonly key: "input";
 }
 
 export interface Const {
-  key: "const";
-  op: unknown; // any plain JS value; `false` is represented as `undefined`
+  readonly key: "const";
+  readonly op: unknown; // any plain JS value; `false` is represented as `undefined`
 }
 
 export interface Var {
-  key: "var";
-  op: VarName; // starts with "*" in source, canonicalized to D<n> / K<n>
+  readonly key: "var";
+  readonly op: VarName; // starts with "*" in source, canonicalized to D<n> / K<n>
 }
 
 // group key standing for "all free variables of the value" (group(e))
 export interface Placeholder {
-  key: "placeholder";
-  op: "*";
-  arg: [];
+  readonly key: "placeholder";
+  readonly op: "*";
+  arg: readonly [];
 }
 
 export interface Get {
-  key: "get";
-  arg: [IR, IR];
-  mode?: "maybe";
+  readonly key: "get";
+  arg: readonly [IR, IR];
+  readonly mode?: "maybe";
 }
 
 export interface Pure {
-  key: "pure";
-  op: PureOp;
-  arg: IR[];
+  readonly key: "pure";
+  readonly op: PureOp;
+  arg: readonly IR[];
 }
 
 export interface Stateful {
-  key: "stateful";
-  op: StatefulOp;
-  arg: [IR];
-  mode?: "maybe" | "reluctant";
+  readonly key: "stateful";
+  readonly op: StatefulOp;
+  arg: readonly [IR];
+  readonly mode?: "maybe" | "reluctant";
 }
 
 export interface Prefix {
-  key: "prefix";
-  op: StatefulOp;
-  arg: IR[];
-  mode?: "reluctant";
+  readonly key: "prefix";
+  readonly op: StatefulOp;
+  arg: readonly IR[];
+  readonly mode?: "reluctant";
 }
 
 // group(k, e) / group?(k, e); group(e) gets a placeholder key.
 // extract0 lowers it to update(base, k, e), with base {} for group and
 // undefined for group? (not initialized if nothing builds it).
 export interface Group {
-  key: "group";
-  arg: [key: IR, value: IR];
-  mode?: "maybe";
+  readonly key: "group";
+  arg: readonly [key: IR, value: IR];
+  readonly mode?: "maybe";
 }
 
 export interface Update {
-  key: "update";
+  readonly key: "update";
   // base, key, value, optional generator filter for the key (extract0)
-  arg: [IR, IR, IR] | [IR, IR, IR, IR];
-  mode?: "inplace";
+  arg: readonly [IR, IR, IR] | readonly [IR, IR, IR, IR];
+  readonly mode?: "inplace";
 }
 
 export interface Mkset {
-  key: "mkset";
-  arg: [IR];
+  readonly key: "mkset";
+  arg: readonly [IR];
 }
 
 export interface MkTuple {
-  key: "mkTuple";
-  arg: IR[]; // alternating key, value
+  readonly key: "mkTuple";
+  arg: readonly IR[]; // alternating key, value
 }
 
 export interface LoadInput {
-  key: "loadInput";
-  op: string; // file format; preproc currently only produces "json"
-  arg: [IR]; // file name
-  inputSchema: unknown;
+  readonly key: "loadInput";
+  readonly op: string; // file format; preproc currently only produces "json"
+  arg: readonly [IR]; // file name
+  readonly inputSchema: unknown;
 }
 
 // reference to assignments[op] (extract2)
 export interface Ref {
-  key: "ref";
-  op: number;
-  arg: [];
+  readonly key: "ref";
+  readonly op: number;
+  arg: readonly [];
 }
 
 // reference to filters[op] (extract3, hard mode)
 export interface Genref {
-  key: "genref";
-  op: number;
-  arg: [];
+  readonly key: "genref";
+  readonly op: number;
+  arg: readonly [];
 }
 
 // analysis results, filled in place by the passes in the order listed
@@ -181,11 +181,11 @@ export interface VarInfo {
 }
 
 export interface BackendIR {
-  settings: Record<string, unknown>; // TODO: type once settings are ported
-  prefixes: string[]; // JSON of canonicalized prefix expressions; index n names D<n> / K<n>
-  path: VarName[]; // current grouping path variables
-  vars: Record<VarName, VarInfo>;
-  hints: IR[];
-  filters: IR[]; // generators: get(e, var)
-  assignments: IR[]; // extracted stateful / prefix / update terms
+  readonly settings: Readonly<Record<string, unknown>>; // TODO: type once settings are ported
+  readonly prefixes: readonly string[]; // JSON of canonicalized prefix expressions; index n names D<n> / K<n>
+  readonly path: readonly VarName[]; // current grouping path variables
+  readonly vars: Readonly<Record<VarName, VarInfo>>;
+  readonly hints: readonly IR[];
+  readonly filters: readonly IR[]; // generators: get(e, var)
+  readonly assignments: readonly IR[]; // extracted stateful / prefix / update terms
 }

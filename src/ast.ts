@@ -18,49 +18,61 @@ import type { Op } from "./ops";
 //  everything else is an op node with children in `_rhParam`
 
 export interface Ident {
-  _rhKey: "ident";
-  _rhOp: string;
+  readonly _rhKey: "ident";
+  readonly _rhOp: string;
 }
 
 export interface Raw {
-  _rhKey: "raw";
-  _rhOp: string;
+  readonly _rhKey: "raw";
+  readonly _rhOp: string;
 }
 
 export interface Const {
-  _rhKey: "const";
-  _rhOp: number | string | boolean | []; // [] from resolving an empty-array hole
+  readonly _rhKey: "const";
+  readonly _rhOp: number | string | boolean | readonly []; // [] from resolving an empty-array hole
 }
 
 export interface Hole {
-  _rhKey: "hole";
-  _rhOp: unknown;
+  readonly _rhKey: "hole";
+  readonly _rhOp: unknown;
 }
 
 // fn x body, closed over its definition environment (desugar)
 export interface Closure {
-  _rhKey: "closure";
-  _rhParam: [env: unknown, arg: Expr, body: Expr]; // env is not an AST
+  readonly _rhKey: "closure";
+  readonly _rhParam: readonly [env: unknown, arg: Expr, body: Expr]; // env is not an AST
 }
 
-// keys of op nodes. Must not overlap with the leaf / closure keys above,
-// otherwise narrowing on `_rhKey` stops working.
+// keys of the built-in ops (used by the q.* builders). The ast itself is
+// open: an OpNode may carry any key, the parser emits whatever was written
+// and preprocess decides whether it means anything.
 export type OpKey = Op;
 
+export type Leaf = Ident | Raw | Const | Hole;
+
 export interface OpNode {
-  _rhKey: OpKey;
-  _rhParam: Expr[];
+  readonly _rhKey: string;
+  readonly _rhParam: readonly Expr[];
 }
 
-export type Expr = Ident | Raw | Const | Hole | Closure | OpNode;
+export type Expr = Leaf | Closure | OpNode;
 
-export type ExprKey = Expr["_rhKey"];
+// Since OpNode's `_rhKey` is `string`, comparing `_rhKey` against a leaf key
+// does not narrow (`"ident"` is also a string). Split on shape first:
+//
+//   if (isOpNode(q)) { q._rhParam ... } else { switch (q._rhKey) ... }
+//
+// Closure also has `_rhParam`, but its first param is not an ast.
+export const isOpNode = (e: Expr): e is OpNode =>
+  "_rhParam" in e && e._rhKey !== "closure";
 
 // external (user-facing) syntax object
 export interface Ast {
-  _rhymeAst: Expr;
+  readonly _rhymeAst: Expr;
 }
 
+// We trust that the user passed in a well-shaped AST here
+// TODO: do a validation pass over the AST
 export const isAst = (e: unknown): e is Ast =>
   typeof e === "object" && e !== null && "_rhymeAst" in e;
 
@@ -88,14 +100,14 @@ export const ident = (a: string): Ident => ({ _rhKey: "ident", _rhOp: a });
 export const raw = (a: string): Raw => ({ _rhKey: "raw", _rhOp: a });
 export const root = (): Raw => raw("inp");
 export const hole = (a: unknown): Hole => ({ _rhKey: "hole", _rhOp: a });
-export const constant = (a: number | boolean | string | []): Const => ({
+export const constant = (a: number | boolean | string | readonly []): Const => ({
   _rhKey: "const",
   _rhOp: a,
 });
 
 // op nodes
 
-export const op = (key: OpKey, param: Expr[]): OpNode => ({
+export const op = (key: string, param: readonly Expr[]): OpNode => ({
   _rhKey: key,
   _rhParam: param,
 });
@@ -110,8 +122,8 @@ export const get = (a: Expr, b?: Expr): OpNode =>
   op("get", b === undefined ? [a] : [a, b]);
 export const apply = (a: Expr, b: Expr): OpNode => op("apply", [a, b]);
 export const call = apply;
-export const array = (as: Expr[]): OpNode => op("array", as);
-export const object = (as: Expr[]): OpNode => op("object", as);
+export const array = (as: readonly Expr[]): OpNode => op("array", as);
+export const object = (as: readonly Expr[]): OpNode => op("object", as);
 export const plus = (a: Expr, b: Expr): OpNode => op("plus", [a, b]);
 
 export const closure = (env: unknown, arg: Expr, body: Expr): Closure => ({

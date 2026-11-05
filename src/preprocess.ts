@@ -1,6 +1,6 @@
 import * as ast from "./ast";
 import * as ops from "./ops";
-import type { Expr } from "./ast";
+import type { Expr, OpNode } from "./ast";
 import type { IR } from "./ir";
 import * as utils from "./utils";
 
@@ -35,28 +35,42 @@ function resolveHole(p: unknown): Expr {
 }
 
 function preproc(q: Expr): IR {
-  if (q._rhKey === "raw") {
-    if (q._rhOp === "inp") return { key: "input" };
-    else utils.error("unexpected raw input: " + JSON.stringify(q));
-  } else if (q._rhKey === "const") {
-    if (q._rhOp === false) return { key: "const", op: undefined };
-    return { key: "const", op: q._rhOp };
-  } else if (q._rhKey == "loadJSON") {
+  if (ast.isOpNode(q)) return preprocOp(q);
+  switch (q._rhKey) {
+    case "raw":
+      if (q._rhOp === "inp") return { key: "input" };
+      utils.error("unexpected raw input: " + JSON.stringify(q));
+    case "const":
+      if (q._rhOp === false) return { key: "const", op: undefined };
+      return { key: "const", op: q._rhOp };
+    case "ident":
+      if (isVar(q._rhOp)) return { key: "var", op: q._rhOp };
+      return { key: "const", op: q._rhOp };
+    case "hole":
+      return preproc(resolveHole(q._rhOp));
+    case "closure":
+      utils.error("unexpected closure leaked to preprocess");
+    default: {
+      const unhandled: never = q;
+      utils.error("unhandled ast node " + JSON.stringify(unhandled));
+    }
+  }
+}
+
+function preprocOp(q: OpNode): IR {
+  if (q._rhKey == "loadJSON") {
     if (q._rhParam[0] === undefined)
       utils.error("malformed op " + JSON.stringify(q));
     let e1 = preproc(q._rhParam[0]);
-    if (q._rhParam[1] === undefined || q._rhParam[1]._rhKey !== "hole") {
+    const schema = q._rhParam[1];
+    if (schema === undefined || schema._rhKey !== "hole" || ast.isOpNode(schema))
       utils.error("schema expected for " + JSON.stringify(q));
-    }
     return {
       key: "loadInput",
       op: "json",
       arg: [e1],
-      inputSchema: q._rhParam[1]._rhOp,
+      inputSchema: schema._rhOp,
     };
-  } else if (q._rhKey === "ident") {
-    if (isVar(q._rhOp)) return { key: "var", op: q._rhOp };
-    else return { key: "const", op: q._rhOp };
   } else if (q._rhKey === "get" || q._rhKey === "get?") {
     if (q._rhParam[0] === undefined)
       utils.error("malformed op " + JSON.stringify(q));
@@ -90,8 +104,6 @@ function preproc(q: Expr): IR {
         op: "flatten",
         arg: p.map((x) => preproc(ast.array([x]))),
       };
-  } else if (q._rhKey == "hole") {
-    return preproc(resolveHole(q._rhOp));
   } else if (q._rhKey == "object") {
     let res: IR = { key: "const", op: {} };
     let constKeys = true;
@@ -135,8 +147,6 @@ function preproc(q: Expr): IR {
     //   let e2 = preproc(q.xxparam[1])
     //   return { key: "pure", op: op, arg: [e1, e2] }
     // }
-    if (q._rhKey == "closure")
-      utils.error("unexpected closure leaked to preprocess");
     let es2 = q._rhParam.map(preproc);
     if (ops.isSpecialOpFull(op)) {
       // get, get? and loadJSON are handled above
@@ -176,6 +186,10 @@ function preproc(q: Expr): IR {
           utils.error(
             op + " is only supported as an object value: " + JSON.stringify(q),
           );
+        case "get":
+        case "get?":
+        case "loadJSON":
+          utils.error("unreachable: " + op + " is handled above");
         default: {
           const unhandled: never = op;
           utils.error("unhandled special op " + unhandled);
